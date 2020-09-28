@@ -51,6 +51,7 @@ import (
 	"math"
 	"math/rand"
 	"net"
+	"runtime"
 	"sync"
 	"syscall"
 	"time"
@@ -312,15 +313,19 @@ func (p *Pinger) Run() error {
 		if conn, err = p.listen(ipv4Proto[p.protocol]); err != nil {
 			return err
 		}
-		if err = conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true); err != nil {
-			return err
+		if runtime.GOOS != "windows" {
+			if err = conn.IPv4PacketConn().SetControlMessage(ipv4.FlagTTL, true); err != nil {
+				return err
+			}
 		}
 	} else {
 		if conn, err = p.listen(ipv6Proto[p.protocol]); err != nil {
 			return err
 		}
-		if err = conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true); err != nil {
-			return err
+		if runtime.GOOS != "windows" {
+			if err = conn.IPv6PacketConn().SetControlMessage(ipv6.FlagHopLimit, true); err != nil {
+				return err
+			}
 		}
 	}
 	defer conn.Close()
